@@ -2,16 +2,22 @@ package com.example.todolistinkotlin
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.todolistinkotlin.analytics.*
 import com.example.todolistinkotlin.databinding.ActivityMainBinding
 import org.jetbrains.anko.alert
+import org.json.JSONObject
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.*
+
 
 class MainActivity : AppCompatActivity(), OnItemClick {
 
@@ -31,6 +37,9 @@ class MainActivity : AppCompatActivity(), OnItemClick {
 
     private lateinit var viewModel: ToDoListViewModel
 
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var sharedEditor: SharedPreferences.Editor
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +47,21 @@ class MainActivity : AppCompatActivity(), OnItemClick {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.lifecycleOwner = this
         viewModel = ViewModelProviders.of(this).get(ToDoListViewModel::class.java)
+        sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        sharedEditor = sharedPreferences.edit();
 
         binding.rvTodoList.layoutManager = LinearLayoutManager(this)
         binding.rvTodoList.adapter = listAdapter
         binding.vieModel = viewModel
+
+        if(isFirstTime()){
+            application.enqueueAndroidEvent(
+                AnalyticsEvent(
+                    Event.APP_FIRST_OPEN,
+                    JSONObject()
+                )
+            )
+        }
 
 
         viewModel.getPreviousList()
@@ -84,7 +104,30 @@ class MainActivity : AppCompatActivity(), OnItemClick {
             viewModel.position = -1;
         })
 
+        binding.editText.setOnClickListener {
+            application.enqueueUserEvent(
+                AnalyticsEvent(
+                    Event.TITLE_EDIT_TEXT_CLICKED,
+                    JSONObject().apply {
+                        put(TASK_TITLE, binding.editText.text.toString())
+                        put(TASK_DATE, binding.etdate.text.toString())
+                        put(TASK_TIME, binding.etTime.text.toString())
+                    }
+                )
+            )
+        }
+
         binding.etdate.setOnClickListener {
+            application.enqueueUserEvent(
+                AnalyticsEvent(
+                    Event.DATE_EDIT_TEXT_CLICKED,
+                    JSONObject().apply {
+                        put(TASK_TITLE, binding.editText.text.toString())
+                        put(TASK_DATE, binding.etdate.text.toString())
+                        put(TASK_TIME, binding.etTime.text.toString())
+                    }
+                )
+            )
 
             val dpd = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
 
@@ -100,6 +143,16 @@ class MainActivity : AppCompatActivity(), OnItemClick {
 
         }
         binding.etTime.setOnClickListener {
+            application.enqueueUserEvent(
+                AnalyticsEvent(
+                    Event.TIME_EDIT_TEXT_CLICKED,
+                    JSONObject().apply {
+                        put(TASK_TITLE, binding.editText.text.toString())
+                        put(TASK_DATE, binding.etdate.text.toString())
+                        put(TASK_TIME, binding.etTime.text.toString())
+                    }
+                )
+            )
             val cal = Calendar.getInstance()
             val timeSetListener = TimePickerDialog.OnTimeSetListener { timePicker, hour, minute ->
                 cal.set(Calendar.HOUR_OF_DAY, hour)
@@ -129,9 +182,32 @@ class MainActivity : AppCompatActivity(), OnItemClick {
         super.onResume()
     }
 
+    private fun isFirstTime(): Boolean {
+        return if (sharedPreferences.getBoolean("firstTime", true)) {
+            sharedEditor.putBoolean("firstTime", false)
+            sharedEditor.commit()
+            sharedEditor.apply()
+            true
+        } else {
+            false
+        }
+    }
+
 
     override fun onItemClick(v: View, position: Int) {
 
+        val item = list.get(position)
+        application.enqueueUserEvent(
+            AnalyticsEvent(
+                Event.TASK_ITEM_CLICKED,
+                JSONObject().apply {
+                    put(TASK_TITLE, item.title)
+                    put(TASK_DATE, item.date)
+                    put(TASK_TIME, item.time)
+                    put(TASK_POSITION, position)
+                }
+            )
+        )
 
         alert {
             message = list.get(position).title
@@ -144,7 +220,7 @@ class MainActivity : AppCompatActivity(), OnItemClick {
                 binding.editText.isFocusable = true
             }
             negativeButton("Delete") {
-                viewModel.delete(list.get(position).indexDb)
+                viewModel.delete(list.get(position).indexDb, list.get(position))
             }
 
         }.show()
@@ -153,5 +229,7 @@ class MainActivity : AppCompatActivity(), OnItemClick {
 
     override fun onStop() {
         super.onStop()
+        application.flush()
+
     }
 }

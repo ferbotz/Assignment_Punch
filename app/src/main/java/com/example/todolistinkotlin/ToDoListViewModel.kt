@@ -14,9 +14,11 @@ import androidx.annotation.WorkerThread
 import androidx.databinding.ObservableField
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import com.example.todolistinkotlin.analytics.*
 import com.example.todolistinkotlin.database.ToDoListDataEntity
 import com.example.todolistinkotlin.database.ToDoListDatabase
 import com.example.todolistinkotlin.notification.AlarmReceiver
+import org.json.JSONObject
 import java.util.*
 
 /**
@@ -73,9 +75,29 @@ class ToDoListViewModel(val context: Application) : AndroidViewModel(context) {
         //database?.toDoListDao()?.insert(ToDoListDataEntity(title = title, date = date, time = time))
         if (position != -1) {
             database?.toDoListDao()?.update(title = title, date = date, time = time, id = id)
+            context.enqueueUserEvent(
+                AnalyticsEvent(
+                    Event.TASK_EDITED,
+                    JSONObject().apply {
+                        put(TASK_TITLE, title)
+                        put(TASK_DATE, date)
+                        put(TASK_TIME, time)
+                        put(TASK_ID, id)
+                    }
+                )
+            )
         } else {
             val newId = database?.toDoListDao()?.insert(ToDoListDataEntity(title = title, date = date, time = time, isShow = 0))
-
+            context.enqueueUserEvent(
+                AnalyticsEvent(
+                    Event.TASK_ADDED,
+                    JSONObject().apply {
+                        put(TASK_TITLE, title)
+                        put(TASK_DATE, date)
+                        put(TASK_TIME, time)
+                    }
+                )
+            )
             val cal : Calendar = Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault())
 
             cal.set(Calendar.MONTH, month)
@@ -104,8 +126,19 @@ class ToDoListViewModel(val context: Application) : AndroidViewModel(context) {
         toDoList.value = getAllData
     }
 
-    fun delete(id: Long) {
+    fun delete(id: Long, taskData: ToDoListData) {
         database?.toDoListDao()?.Delete(id)
+        context.enqueueUserEvent(
+            AnalyticsEvent(
+                Event.TASK_DELETED,
+                JSONObject().apply {
+                    put(TASK_TITLE, taskData.title)
+                    put(TASK_DATE, taskData.date)
+                    put(TASK_TIME, taskData.time)
+                    put(TASK_ID, id)
+                }
+            )
+        )
         database?.toDoListDao()?.getAll().let {
             getAllData = it as MutableList<ToDoListDataEntity>
             getPreviousList()

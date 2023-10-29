@@ -123,7 +123,7 @@ class ToDoListViewModel(val context: Application) : AndroidViewModel(context) {
         intent.putExtra("id", id)
         intent.putExtra("title", title)
         intent.putExtra("date","Time-> $hour:$minute")
-        val pandingIntent: PendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pandingIntent: PendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_MUTABLE)
 
         if (i == 0) {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,  calender.timeInMillis , pandingIntent)

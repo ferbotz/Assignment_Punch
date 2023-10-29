@@ -9,7 +9,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.todolistinkotlin.databinding.ActivityMainBinding
-import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.alert
 import java.text.SimpleDateFormat
 import java.util.*
@@ -40,8 +39,8 @@ class MainActivity : AppCompatActivity(), OnItemClick {
         binding.lifecycleOwner = this
         viewModel = ViewModelProviders.of(this).get(ToDoListViewModel::class.java)
 
-        rvTodoList.layoutManager = LinearLayoutManager(this)
-        rvTodoList.adapter = listAdapter
+        binding.rvTodoList.layoutManager = LinearLayoutManager(this)
+        binding.rvTodoList.adapter = listAdapter
         binding.vieModel = viewModel
 
 
@@ -85,12 +84,12 @@ class MainActivity : AppCompatActivity(), OnItemClick {
             viewModel.position = -1;
         })
 
-        etdate.setOnClickListener {
+        binding.etdate.setOnClickListener {
 
             val dpd = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
 
                 // Display Selected date in textbox
-                etdate.setText("" + dayOfMonth + "/" + (monthOfYear + 1) + "/" + year)
+                binding.etdate.setText("" + dayOfMonth + "/" + (monthOfYear + 1) + "/" + year)
                 viewModel.month = monthOfYear
                 viewModel.year = year
                 viewModel.day = dayOfMonth
@@ -100,7 +99,7 @@ class MainActivity : AppCompatActivity(), OnItemClick {
             dpd.show()
 
         }
-        etTime.setOnClickListener {
+        binding.etTime.setOnClickListener {
             val cal = Calendar.getInstance()
             val timeSetListener = TimePickerDialog.OnTimeSetListener { timePicker, hour, minute ->
                 cal.set(Calendar.HOUR_OF_DAY, hour)
@@ -111,7 +110,7 @@ class MainActivity : AppCompatActivity(), OnItemClick {
                 viewModel.hour = hour
                 viewModel.minute = minute
 
-                etTime.setText(SimpleDateFormat("HH:mm").format(cal.time))
+                binding.etTime.setText(SimpleDateFormat("HH:mm").format(cal.time))
             }
 
             this.cal = cal
@@ -142,7 +141,7 @@ class MainActivity : AppCompatActivity(), OnItemClick {
                 viewModel.time.set(list.get(position).time)
                 viewModel.position = position
                 viewModel.index = list.get(position).indexDb
-                editText.isFocusable = true
+                binding.editText.isFocusable = true
             }
             negativeButton("Delete") {
                 viewModel.delete(list.get(position).indexDb)

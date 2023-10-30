@@ -7,11 +7,17 @@ const val ANALYTICS_DATA_TYPE = "analytics data type"
 
 
 const val SESSION_DATA_TYPE = "session"
+const val CRASH_DATA_TYPE = "crash"
 
 const val TIME_STAMP = "time stamp"
 const val DEVICE_ID = "device id"
 const val VERSION_CODE = "app version code"
 const val VERSION_NAME = "app version name"
+const val DEVICE_MODEL = "device model"
+const val DEVICE_BRAND = "device brand"
+
+const val ACTIVITY_NAME = "activity name"
+const val FRAGMENT_NAME = "fragment name"
 
 
 const val TASK_TITLE = "task title"

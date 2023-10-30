@@ -5,6 +5,11 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 
+
+/**
+ * The FragmentLifeCycle class implements the Fragment's lifecycle events and also registered with activity's fragment manager's lifecycle callbacks
+ * making it easy to call analytics events on every ui lifecycle events for every fragment.
+ * */
 class FragmentLifeCycle( private val currentFragment : (String) -> Unit) : FragmentManager.FragmentLifecycleCallbacks() {
 
     override fun onFragmentAttached(fm: FragmentManager, f: Fragment, context: Context) {

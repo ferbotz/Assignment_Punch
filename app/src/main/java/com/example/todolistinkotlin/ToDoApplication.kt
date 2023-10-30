@@ -1,6 +1,7 @@
 package com.example.todolistinkotlin
 
 import android.app.Application
+import android.os.Build
 import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -12,7 +13,9 @@ class ToDoApplication(): Application() {
     val analyticsManager by lazy { AnalyticsManager(this) }
 
     private val processLifecycleOwner = ProcessLifecycleOwner.get()
-    private var lifecycle:Lifecycle? = Lifecycle()
+    private var lifecycle:Lifecycle? = Lifecycle(){
+        analyticsManager.enqueueAndroidEvent(it)
+    }
 
 
     override fun onCreate() {
@@ -33,6 +36,10 @@ class ToDoApplication(): Application() {
 
         registerActivityLifecycleCallbacks(lifecycle)
 
+        Thread.setDefaultUncaughtExceptionHandler(MyUncaughtExceptionHandler(){
+            analyticsManager.pushCrashEvent(it)
+        })
+
 
     }
 
@@ -44,6 +51,8 @@ fun Application.enqueueUserEvent(event:AnalyticsEvent){
         put(DEVICE_ID, getDateTime())
         put(VERSION_CODE, BuildConfig.VERSION_CODE)
         put(VERSION_NAME, BuildConfig.VERSION_NAME)
+        put(DEVICE_MODEL, Build.MODEL)
+        put(DEVICE_BRAND, Build.BRAND)
     }
     (this as ToDoApplication).analyticsManager.enqueueUserEvent(event)
 }
@@ -54,10 +63,8 @@ fun Application.enqueueAndroidEvent(event:AnalyticsEvent){
         put(DEVICE_ID, getDateTime())
         put(VERSION_CODE, BuildConfig.VERSION_CODE)
         put(VERSION_NAME, BuildConfig.VERSION_NAME)
+        put(DEVICE_MODEL, Build.MODEL)
+        put(DEVICE_BRAND, Build.BRAND)
     }
     (this as ToDoApplication).analyticsManager.enqueueAndroidEvent(event)
-}
-
-fun Application.flush(){
-    (this as ToDoApplication).analyticsManager.flush()
 }

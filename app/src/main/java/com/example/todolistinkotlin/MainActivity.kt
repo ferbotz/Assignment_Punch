@@ -229,7 +229,5 @@ class MainActivity : AppCompatActivity(), OnItemClick {
 
     override fun onStop() {
         super.onStop()
-        application.flush()
-
     }
 }

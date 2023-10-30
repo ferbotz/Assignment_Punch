@@ -19,7 +19,7 @@ interface AnalyticsService {
     fun postAnalyticsEventData(@Body analyticsEvent: AnalyticsEvent): Call<String>
 
     @POST(CRASH_EVENT_DATA_END_POINT)
-    fun postCrashEventData(@Body crashEvent: String): Call<String>
+    fun postCrashEventData(@Body crashEvent: CrashEvent): Call<String>
 
 }
 
@@ -31,7 +31,7 @@ object AnalyticsClient{
             GsonBuilder()
                 .setLenient()
                 .create()))
-        .baseUrl("https://jsonplaceholder.typicode.com")
+        .baseUrl("https://dummy_base_url.com")
         .build()
         .create(AnalyticsService::class.java)
 }
